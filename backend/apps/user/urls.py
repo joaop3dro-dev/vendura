@@ -1,11 +1,11 @@
 from django.urls import include, path
 
-from .views.auth_views import (
+from ..customer.views.auth_views import (
     CookieTokenBlacklistView,
     CookieTokenObtainPairView,
     CookieTokenRefreshView,
 )
-from .views.user_views import RegisterView
+from ..customer.views.user_views import RegisterView
 
 auth_patterns = [
     path("login/", CookieTokenObtainPairView.as_view()),

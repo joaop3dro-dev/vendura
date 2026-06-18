@@ -49,11 +49,13 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
-    "customer",
-    "product",
-    "order",
-    "coupon",
-    "cart",
+    "apps.customer",
+    "apps.product",
+    "apps.order",
+    "apps.coupon",
+    "apps.cart",
+    "apps.core",
+    "apps.user",
 ]
 
 # =============================================================================
@@ -130,7 +132,7 @@ AUTH_PASSWORD_VALIDATORS = [
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "customer.authentication.CookieJWTAuthentication"
+        "apps.user.authentication.CookieJWTAuthentication"
     ],
     "EXCEPTION_HANDLER": "config.exceptions.custom_exception_handler",
 }
