@@ -49,13 +49,15 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
-    "apps.customer",
-    "apps.product",
-    "apps.order",
-    "apps.coupon",
-    "apps.cart",
+    "django_filters",
+    "apps.customers",
+    "apps.products",
+    "apps.orders",
+    "apps.coupons",
+    "apps.carts",
     "apps.core",
-    "apps.user",
+    "apps.users",
+    "apps.stores",
 ]
 
 # =============================================================================
@@ -129,12 +131,18 @@ AUTH_PASSWORD_VALIDATORS = [
 # AUTHENTICATION & JWT
 # =============================================================================
 
+AUTH_USER_MODEL = "users.User"
+
+
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "apps.user.authentication.CookieJWTAuthentication"
+        "apps.users.authentication.CookieJWTAuthentication"
     ],
     "EXCEPTION_HANDLER": "config.exceptions.custom_exception_handler",
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.CursorPagination",
+    "PAGE_SIZE": 20,
 }
 
 SIMPLE_JWT = {
@@ -148,6 +156,18 @@ JWT_COOKIE_SAMESITE = "None"
 JWT_COOKIE_SECURE = not DEBUG
 JWT_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = False
+
+# =============================================================================
+# DJANGO REDIS
+# =============================================================================
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+    }
+}
 
 # =============================================================================
 # INTERNATIONALIZAÇÃO

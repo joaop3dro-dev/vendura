@@ -2,10 +2,10 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.management.base import BaseCommand
 
-from apps.coupon.models import Coupon
-from apps.customer.models import Customer
-from apps.order.models import Order, OrderItem
-from apps.product.models import Product
+from apps.coupons.models import Coupon
+from apps.customers.models import Customer
+from apps.orders.models import Order, OrderItem
+from apps.products.models import Product
 
 
 class Command(BaseCommand):
@@ -15,7 +15,7 @@ class Command(BaseCommand):
         self._create_group_coupons()
         self._create_group_orders()
         self._create_group_stock()
-        self._create_group_users()
+        self._create_group_customers()
         self.stdout.write(self.style.SUCCESS("Grupos criados com sucesso"))
 
     def _get_permissions(self, model, actions):
@@ -33,7 +33,7 @@ class Command(BaseCommand):
     def _create_group_orders(self):
         group, _ = Group.objects.get_or_create(name="Orders")
 
-        permissions = self._get_permissions(Order, ["view"])
+        permissions = self._get_permissions(Order, ["view", "cancel"])
 
         permissions += self._get_permissions(OrderItem, ["view"])
 
@@ -46,9 +46,9 @@ class Command(BaseCommand):
 
         group.permissions.set(permissions)
 
-    def _create_group_users(self):
-        group, _ = Group.objects.get_or_create(name="User")
+    def _create_group_customers(self):
+        group, _ = Group.objects.get_or_create(name="Customer Manager")
 
-        permissions = self._get_permissions(Customer, ["view"])
+        permissions = self._get_permissions(Customer, ["view", "deactivate"])
 
         group.permissions.set(permissions)
