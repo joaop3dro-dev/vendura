@@ -1,15 +1,17 @@
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny, DjangoModelPermissions
-from stores.permissions import IsSeller, IsSellerOwner
 
+from apps.stores.permissions import IsSeller, IsSellerOwner
 from config.pagination import ProductCursorPagination
 
+from .filters import ProductFilter
 from .models import Product
 from .serializers import ProductSerializer
 
 
 class ProductMixin:
     pagination_class = ProductCursorPagination
+    filterset_class = ProductFilter
 
 
 class ProductStaffViewSet(ProductMixin, viewsets.ModelViewSet):

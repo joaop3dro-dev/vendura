@@ -1,13 +1,13 @@
 from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
-from .views import ProductPublicViewSet, ProductStaffViewSet, ProductUserViewSet
+from .views import ProductPublicViewSet, ProductSellerViewSet, ProductStaffViewSet
 
 staff_router = SimpleRouter()
 staff_router.register("products", ProductStaffViewSet, basename="staff-products")
 
 product_user_router = SimpleRouter()
-product_user_router.register("products", ProductUserViewSet, basename="user-products")
+product_user_router.register("products", ProductSellerViewSet, basename="user-products")
 
 public_router = SimpleRouter()
 public_router.register("", ProductPublicViewSet, basename="public-products")

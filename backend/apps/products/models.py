@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Q
-from stores.models import Store
+
+from apps.stores.models import Store
 
 
 class Category(models.Model):
