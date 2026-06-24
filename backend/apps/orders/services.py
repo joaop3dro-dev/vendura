@@ -1,16 +1,16 @@
 from decimal import Decimal
 
-from apps.coupon.exceptions import (
+from django.db import transaction
+from django.utils import timezone
+
+from apps.coupons.exceptions import (
     CouponExpiredError,
     CouponMinimumOrderValueError,
     CouponNotActivatedError,
     CouponNotFoundError,
     CouponUsageLimitReachedError,
 )
-from apps.coupon.repositories import CouponRepository
-from django.db import transaction
-from django.utils import timezone
-
+from apps.coupons.repositories import CouponRepository
 from apps.products.repositories import ProductRepository
 
 from .models import Coupon, Order
