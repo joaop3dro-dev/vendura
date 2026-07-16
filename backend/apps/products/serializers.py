@@ -1,11 +1,10 @@
 from rest_framework import serializers
 
-from .models import Product
+from .models import Category, Product
 
 
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True)
-    store_name = serializers.CharField(source='store.name', read_only=True)
 
     class Meta:
         model = Product
@@ -18,6 +17,12 @@ class ProductSerializer(serializers.ModelSerializer):
             "category",
             "category_name",
             "public",
-            "store_name",
         ]
+        read_only_fields = ["id"]
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ["id", "name", "description", "image"]
         read_only_fields = ["id"]

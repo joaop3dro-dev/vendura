@@ -1,12 +1,11 @@
 from rest_framework import viewsets
-from rest_framework.permissions import AllowAny, DjangoModelPermissions
+from rest_framework.permissions import AllowAny, DjangoModelPermissions, IsAdminUser
 
-from apps.stores.permissions import IsSeller, IsSellerOwner
 from config.pagination import ProductCursorPagination
 
 from .filters import ProductFilter
-from .models import Product
-from .serializers import ProductSerializer
+from .models import Category, Product
+from .serializers import CategorySerializer, ProductSerializer
 
 
 class ProductMixin:
@@ -25,17 +24,16 @@ class ProductPublicViewSet(ProductMixin, viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        return Product.objects.select_related("category", "store").filter(public=True)
+        return Product.objects.select_related("category").filter(public=True)
 
 
-class ProductSellerViewSet(ProductMixin, viewsets.ModelViewSet):
-    serializer_class = ProductSerializer
-    permission_classes = [IsSeller, IsSellerOwner]
+class CategoryViewSet(viewsets.ModelViewSet):
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdminUser]
+    queryset = Category.objects.all()
 
-    def get_queryset(self):
-        return Product.objects.select_related("category", "store").filter(
-            store=self.request.user.store
-        )
 
-    def perform_create(self, serializer):
-        serializer.save(store=self.request.user.store)
+class CategoryPublicViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = CategorySerializer
+    permission_classes = [AllowAny]
+    queryset = Category.objects.all()

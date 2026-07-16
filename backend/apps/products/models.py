@@ -1,12 +1,11 @@
 from django.db import models
 from django.db.models import Q
 
-from apps.stores.models import Store
-
 
 class Category(models.Model):
-    name = models.CharField(max_length=50)
-    image = models.ImageField()
+    name = models.CharField(max_length=50, unique=True)
+    description = models.CharField(blank=True)
+    image = models.ImageField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -20,7 +19,6 @@ class Product(models.Model):
     category = models.ForeignKey(
         Category, on_delete=models.PROTECT, related_name="products"
     )
-    store = models.ForeignKey(Store, on_delete=models.PROTECT, related_name="products")
     public = models.BooleanField(default=True)
 
     class Meta:
