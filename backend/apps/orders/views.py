@@ -8,14 +8,19 @@ from .serializers import FinalizeOrderSerializer, OrderSerializer
 from .services import finalize_order
 
 
-class FinalizeOrderView(APIView):
+class FinalizeOrderCartView(APIView):
     def post(self, request):
         serializer = FinalizeOrderSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        itens_transform = [
+            {"product": item["product"].id, "quantity": item["quantity"]}
+            for item in serializer.validated_data["itens"]
+        ]
+
         order_id = finalize_order(
             customer=request.user,
-            itens=serializer.validated_data["itens"],
+            itens=itens_transform,
             cupom_code=serializer.validated_data.get("cupom_code"),
         )
 
