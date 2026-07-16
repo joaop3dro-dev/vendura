@@ -31,9 +31,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-DEBUG = os.getenv("DEBUG", "FALSE") == "True"
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
 # =============================================================================
@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     "apps.carts",
     "apps.core",
     "apps.users",
-    "apps.stores",
+    "drf_spectacular",
 ]
 
 # =============================================================================
@@ -128,7 +128,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # =============================================================================
-# AUTHENTICATION & JWT
+# REST FRAMEWORK, AUTHENTICATION & JWT
 # =============================================================================
 
 AUTH_USER_MODEL = "users.User"
@@ -143,6 +143,17 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.CursorPagination",
     "PAGE_SIZE": 20,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Vendura API",
+    "DESCRIPTION": "Docs da API do Vendura",
+    "VERSION": "1.0.00",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SECURITY_SCHEMES": {
+        "cookieAuth": {"type": "apiKey", "in": "cookie", "name": "access"}
+    },
 }
 
 SIMPLE_JWT = {
