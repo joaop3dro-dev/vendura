@@ -5,6 +5,13 @@ from apps.products.serializers import ProductSerializer
 from .models import Cart, CartItem
 
 
+class CreateCartItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CartItem
+        fields = ["id", "item", "quantity"]
+        read_only_fields = ["id"]
+
+
 class CartItemSerializer(serializers.ModelSerializer):
     item = ProductSerializer(read_only=True)
 
@@ -19,3 +26,9 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = ["id", "itens"]
+
+
+class UpdateCartItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CartItem
+        fields = ["quantity", "selected"]
