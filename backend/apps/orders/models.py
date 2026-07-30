@@ -5,6 +5,8 @@ from django.db.models import Q
 from apps.coupons.models import Coupon
 from apps.products.models import Product
 
+from .exceptions import OrderCannotBeCancelledError
+
 User = get_user_model()
 
 
@@ -46,7 +48,7 @@ class Order(models.Model):
             self.Status.PENDING,
             self.Status.PAID,
         ]:
-            raise ValueError(
+            raise OrderCannotBeCancelledError(
                 f"Pedido com status '{self.status}' não pode ser cancelado"
             )
         self.status = self.Status.CANCELLED

@@ -4,3 +4,7 @@ class OrderError(Exception):
 
 class OrderNotExists(OrderError):
     pass
+
+
+class OrderCannotBeCancelledError(OrderError):
+    pass

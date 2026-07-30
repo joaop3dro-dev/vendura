@@ -27,11 +27,10 @@ class OrderItemInputSerializer(serializers.Serializer):
     quantity = serializers.IntegerField(min_value=1)
 
 
-class FinalizeOrderSerializer(serializers.Serializer):
-    itens = OrderItemInputSerializer(many=True)
-    cupom_code = serializers.CharField(required=False, allow_null=True)
+class FinalizeOrderCartSerializer(serializers.Serializer):
+    coupon_code = serializers.CharField(required=False, allow_null=True)
 
-    def validate_itens(self, value):
-        if len(value) == 0:
-            raise serializers.ValidationError("Pedido deve ter pelo menos um item")
-        return value
+
+class FinalizeOrderOneProductSerializer(serializers.Serializer):
+    item = OrderItemInputSerializer()
+    coupon_code = serializers.CharField(required=False, allow_null=True)

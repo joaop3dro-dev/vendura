@@ -9,6 +9,7 @@ from apps.coupons.exceptions import (
     CouponNotFoundError,
     CouponUsageLimitReachedError,
 )
+from apps.orders.exceptions import OrderCannotBeCancelledError, OrderNotExists
 
 EXCEPTION_MAP = {
     CouponNotFoundError: status.HTTP_404_NOT_FOUND,
@@ -16,6 +17,8 @@ EXCEPTION_MAP = {
     CouponUsageLimitReachedError: status.HTTP_409_CONFLICT,
     CouponMinimumOrderValueError: status.HTTP_400_BAD_REQUEST,
     CouponNotActivatedError: status.HTTP_400_BAD_REQUEST,
+    OrderCannotBeCancelledError: status.HTTP_400_BAD_REQUEST,
+    OrderNotExists: status.HTTP_404_NOT_FOUND,
 }
 
 

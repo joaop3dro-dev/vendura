@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.db import transaction
 from django.utils import timezone
 
+from apps.carts.models import CartItem
 from apps.coupons.exceptions import (
     CouponExpiredError,
     CouponMinimumOrderValueError,
@@ -17,32 +18,32 @@ from .models import Coupon, Order
 from .repositories import OrderItemRepository, OrderRepository
 
 
-def calc_total(itens, products):
+def calc_total(items, products):
     total = Decimal("0")
 
-    for item in itens:
-        product = products[item["product"]]
-        total += product.price * item["quantity"]
+    for item, qty in items:
+        product = products[item]
+        total += product.price * qty
     return total
 
 
 @transaction.atomic
-def finalize_order(customer, itens, cupom_code=None):
-    products_ids = [item["product"] for item in itens]
-    products = ProductRepository.get_products_for_update(products_ids)
+def finalize_direct_order(customer, coupon_code, item):
+    product = ProductRepository.get_products_for_update_direct(item["product"].id)
 
-    total = calc_total(itens, products)
-    if cupom_code:
+    total = product.price * item["quantity"]
+
+    if coupon_code:
         try:
-            coupon = CouponRepository.get_coupon(cupom_code)
+            coupon = CouponRepository.get_coupon(coupon_code)
         except Coupon.DoesNotExist:
-            raise CouponNotFoundError(f"Cupom '{cupom_code}' não encontrado")
+            raise CouponNotFoundError(f"Cupom '{coupon_code}' não encontrado")
 
         discount_percent = coupon.discount_percent
 
         if not coupon.activated:
             raise CouponNotActivatedError(
-                f"Cupom '{cupom_code}' não está ativado para uso"
+                f"Cupom '{coupon_code}' não está ativado para uso"
             )
 
         if coupon.expires < timezone.now():
@@ -51,7 +52,7 @@ def finalize_order(customer, itens, cupom_code=None):
         if coupon.min_value_amount is not None and total < coupon.min_value_amount:
             raise CouponMinimumOrderValueError("Valor mínimo de uso não atingido")
 
-        discount = total * (discount_percent / 100)
+        discount = total * (discount_percent / Decimal(100))
 
         if coupon.max_discount_amount is not None:
             discount = min(discount, coupon.max_discount_amount)
@@ -62,22 +63,88 @@ def finalize_order(customer, itens, cupom_code=None):
         if updated == 0:
             raise CouponUsageLimitReachedError("Limite de usos atingido")
 
-    for item in itens:
-        product = products[item["product"]]
+    if product.stock < item["quantity"]:
+        raise ValueError(f"Estoque insuficiente para {product.name}")
 
-        if product.stock < item["quantity"]:
+    order = OrderRepository.create_new_order(customer, total)
+
+    OrderItemRepository.create_order_item(
+        order, product, item["quantity"], unit_price=product.price
+    )
+
+    ProductRepository.decrement_stock(product.id, item["quantity"])
+
+    return order.pk
+
+
+@transaction.atomic
+def finalize_order_cart(customer, coupon_code):
+    items = list(
+        CartItem.objects.filter(
+            cart__customer=customer, selected=CartItem.SelectedChoices.SELECTED
+        ).values_list("item_id", "quantity")
+    )
+
+    if len(items) == 0:
+        raise ValueError("Não há produtos selecionados no carrinho")
+
+    product_ids = [item_id for item_id, _ in items]
+    products = ProductRepository.get_products_for_update(product_ids)
+
+    if len(products) != len(set(product_ids)):
+        raise ValueError("Produto inválido no carrinho")
+
+    total = calc_total(items, products)
+    if coupon_code:
+        try:
+            coupon = CouponRepository.get_coupon(coupon_code)
+        except Coupon.DoesNotExist:
+            raise CouponNotFoundError(f"Cupom '{coupon_code}' não encontrado")
+
+        discount_percent = coupon.discount_percent
+
+        if not coupon.activated:
+            raise CouponNotActivatedError(
+                f"Cupom '{coupon_code}' não está ativado para uso"
+            )
+
+        if coupon.expires < timezone.now():
+            raise CouponExpiredError("Cupom expirado")
+
+        if coupon.min_value_amount is not None and total < coupon.min_value_amount:
+            raise CouponMinimumOrderValueError("Valor mínimo de uso não atingido")
+
+        discount = total * (discount_percent / Decimal(100))
+
+        if coupon.max_discount_amount is not None:
+            discount = min(discount, coupon.max_discount_amount)
+        total -= discount
+
+        updated = CouponRepository.coupon_add_use(coupon.id)
+
+        if updated == 0:
+            raise CouponUsageLimitReachedError("Limite de usos atingido")
+
+    for item, qty in items:
+        product = products[item]
+
+        if product.stock < qty:
             raise ValueError(f"Estoque insuficiente para {product.name}")
 
     order = OrderRepository.create_new_order(customer, total)
 
-    for item in itens:
-        product = products[item["product"]]
+    for item, qty in items:
+        product = products[item]
 
         OrderItemRepository.create_order_item(
-            order, product, item["quantity"], unit_price=product.price
+            order, product, qty, unit_price=product.price
         )
 
-        ProductRepository.decrement_stock(product.id, item["quantity"])
+        ProductRepository.decrement_stock(product.id, qty)
+
+    CartItem.objects.filter(
+        cart__customer=customer, selected=CartItem.SelectedChoices.SELECTED
+    ).delete()
 
     return order.pk
 
@@ -96,5 +163,21 @@ def order_pedding_process():
 
     order.status = Order.Status.PROCESSING
     order.save()
+
+    return order
+
+
+@transaction.atomic
+def cancel_order(customer, order_id):
+    order = OrderRepository.get_order_for_update(customer, order_id)
+
+    order_items = OrderItemRepository.get_order_items(order_id)
+
+    order = OrderRepository.cancel_order(order=order)
+
+    for order_item in order_items:
+        ProductRepository.increment_stock(
+            product_id=order_item.product.id, quantity=order_item.quantity
+        )
 
     return order
