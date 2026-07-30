@@ -16,6 +16,15 @@ build/
 dist/
 *.egg-info/
 
+# Ruff / Mypy / Pytest
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# Coverage
+.coverage
+htmlcov/
+
 # ==========================================
 # Django
 # ==========================================
@@ -23,10 +32,8 @@ db.sqlite3
 db.sqlite3-journal
 
 media/
-
 staticfiles/
 
-# Arquivos locais
 local_settings.py
 
 # Logs
@@ -40,33 +47,7 @@ local_settings.py
 !.env.example
 
 # ==========================================
-# Ruff
-# ==========================================
-.ruff_cache/
-
-# ==========================================
-# Pytest
-# ==========================================
-.pytest_cache/
-
-# ==========================================
-# Mypy
-# ==========================================
-.mypy_cache/
-
-# ==========================================
-# Coverage
-# ==========================================
-.coverage
-htmlcov/
-
-# ==========================================
-# VS Code
-# ==========================================
-.vscode/
-
-# ==========================================
-# Node.js / React
+# Node.js
 # ==========================================
 node_modules/
 
@@ -75,23 +56,37 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Build React
-build/
-dist/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# Vite
-.vite/
+# ==========================================
+# Next.js
+# ==========================================
+.next/
+out/
+
+coverage/
+.vercel/
+
+next-env.d.ts
+*.tsbuildinfo
+
+# ==========================================
+# IDEs
+# ==========================================
+.vscode/
+.idea/
 
 # ==========================================
 # Sistema Operacional
 # ==========================================
 .DS_Store
 Thumbs.db
-
-# ==========================================
-# IDEs
-# ==========================================
-.idea/
 
 # ==========================================
 # Docker
@@ -104,46 +99,5 @@ Thumbs.db
 *.tmp
 *.temp
 
+# Outros
 jobs.md
-
-# Next.js
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
