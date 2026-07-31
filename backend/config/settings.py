@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.users",
     "drf_spectacular",
+    "phonenumber_field",
 ]
 
 # =============================================================================
@@ -132,6 +133,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # =============================================================================
 
 AUTH_USER_MODEL = "users.User"
+
+PHONENUMBER_DEFAULT_REGION = "BR"
 
 
 REST_FRAMEWORK = {

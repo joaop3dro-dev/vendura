@@ -18,6 +18,7 @@ api_patterns = [
     path("orders/", include("apps.orders.urls")),
     path("", include(spectacular_patterns)),
     path("cart/", include("apps.carts.urls")),
+    path("customers/", include("apps.customers.urls")),
 ]
 
 urlpatterns = [

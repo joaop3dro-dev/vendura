@@ -4,34 +4,55 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Address',
+            name="Address",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('street', models.CharField(max_length=255)),
-                ('number', models.CharField(max_length=20)),
-                ('neighborhood', models.CharField(max_length=100)),
-                ('city', models.CharField(max_length=100)),
-                ('state', models.CharField(max_length=2)),
-                ('zip_code', models.CharField(max_length=9)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("street", models.CharField(max_length=255)),
+                ("number", models.CharField(max_length=20)),
+                ("neighborhood", models.CharField(max_length=100)),
+                ("city", models.CharField(max_length=100)),
+                ("state", models.CharField(max_length=2)),
+                ("zip_code", models.CharField(max_length=9)),
             ],
         ),
         migrations.CreateModel(
-            name='Customer',
+            name="Customer",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('phone', models.CharField(max_length=20)),
-                ('activate', models.CharField(choices=[('activate', 'Ativo'), ('deactivate', 'Desativado')], default='activate', max_length=20)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("phone", models.CharField(max_length=20)),
+                (
+                    "activate",
+                    models.CharField(
+                        choices=[("activate", "Ativo"), ("deactivate", "Desativado")],
+                        default="activate",
+                        max_length=20,
+                    ),
+                ),
             ],
             options={
-                'permissions': [('deactivate_customer', 'Can deactivate customer')],
+                "permissions": [("deactivate_customer", "Can deactivate customer")],
             },
         ),
     ]

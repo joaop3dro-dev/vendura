@@ -1,6 +1,7 @@
 from rest_framework.permissions import BasePermission
 from .models import Order
 
+
 class CanApproveOrder(BasePermission):
     def has_permission(self, request, view):
         return request.user.has_perm("orders.approve_order")

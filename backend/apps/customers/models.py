@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from phonenumber_field.modelfields import PhoneNumberField
 
 User = get_user_model()
 
@@ -10,7 +11,7 @@ class Customer(models.Model):
         DEACTIVATE = "deactivate", "Desativado"
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="customer")
-    phone = models.CharField(max_length=20)
+    phone = PhoneNumberField()
     activate = models.CharField(
         choices=Status.choices, default=Status.ACTIVATE, max_length=20
     )

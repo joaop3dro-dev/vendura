@@ -4,33 +4,36 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('products', '0001_initial'),
+        ("products", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='category',
-            name='description',
+            model_name="category",
+            name="description",
             field=models.CharField(blank=True),
         ),
         migrations.AlterField(
-            model_name='category',
-            name='image',
-            field=models.ImageField(blank=True, null=True, upload_to=''),
+            model_name="category",
+            name="image",
+            field=models.ImageField(blank=True, null=True, upload_to=""),
         ),
         migrations.AlterField(
-            model_name='category',
-            name='name',
+            model_name="category",
+            name="name",
             field=models.CharField(max_length=50, unique=True),
         ),
         migrations.AddConstraint(
-            model_name='product',
-            constraint=models.CheckConstraint(condition=models.Q(('price__gt', 0)), name='product_price_positive'),
+            model_name="product",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("price__gt", 0)), name="product_price_positive"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='product',
-            constraint=models.CheckConstraint(condition=models.Q(('stock__gte', 0)), name='stock_non_negative'),
+            model_name="product",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("stock__gte", 0)), name="stock_non_negative"
+            ),
         ),
     ]

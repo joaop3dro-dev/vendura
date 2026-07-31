@@ -4,15 +4,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('carts', '0001_initial'),
+        ("carts", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='cartitem',
-            name='selected',
-            field=models.CharField(choices=[('selected', 'Selecionado'), ('no-selected', 'Não Selecionado')], db_index=True, default='selected', max_length=20),
+            model_name="cartitem",
+            name="selected",
+            field=models.CharField(
+                choices=[
+                    ("selected", "Selecionado"),
+                    ("no-selected", "Não Selecionado"),
+                ],
+                db_index=True,
+                default="selected",
+                max_length=20,
+            ),
         ),
     ]

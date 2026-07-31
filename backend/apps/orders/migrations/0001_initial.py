@@ -5,33 +5,78 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('coupons', '0001_initial'),
+        ("coupons", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='OrderItem',
+            name="OrderItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('quantity', models.PositiveIntegerField()),
-                ('unit_price', models.DecimalField(decimal_places=2, max_digits=10)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("quantity", models.PositiveIntegerField()),
+                ("unit_price", models.DecimalField(decimal_places=2, max_digits=10)),
             ],
         ),
         migrations.CreateModel(
-            name='Order',
+            name="Order",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('total', models.DecimalField(decimal_places=2, max_digits=10, null=True)),
-                ('status', models.CharField(choices=[('pending', 'Pendente'), ('paid', 'Pago'), ('shipped', 'Enviado'), ('delivered', 'Entregue'), ('cancelled', 'Cancelado'), ('processing', 'Processando')], db_index=True, default='pending', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('coupon', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='orders', to='coupons.coupon')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "total",
+                    models.DecimalField(decimal_places=2, max_digits=10, null=True),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pendente"),
+                            ("paid", "Pago"),
+                            ("shipped", "Enviado"),
+                            ("delivered", "Entregue"),
+                            ("cancelled", "Cancelado"),
+                            ("processing", "Processando"),
+                        ],
+                        db_index=True,
+                        default="pending",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "coupon",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="orders",
+                        to="coupons.coupon",
+                    ),
+                ),
             ],
             options={
-                'permissions': [('cancel_order', 'Can cancel order'), ('approve_order', 'Can approve order')],
+                "permissions": [
+                    ("cancel_order", "Can cancel order"),
+                    ("approve_order", "Can approve order"),
+                ],
             },
         ),
     ]

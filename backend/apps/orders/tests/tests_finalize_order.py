@@ -68,9 +68,7 @@ class FinalizeOrderTest(TestCase):
         self.assertEqual(order.items.get().product, self.product)
         self.assertEqual(self.product.stock, 8)
         self.assertEqual(unselected_product.stock, 10)
-        self.assertFalse(
-            CartItem.objects.filter(cart=cart, item=self.product).exists()
-        )
+        self.assertFalse(CartItem.objects.filter(cart=cart, item=self.product).exists())
         self.assertTrue(
             CartItem.objects.filter(cart=cart, item=unselected_product).exists()
         )

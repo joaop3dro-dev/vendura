@@ -12,9 +12,7 @@ class FinalizeOrderAPITest(APITestCase):
     def setUp(self):
         self.customer = UserFactory()
         self.product = ProductFactory(stock=10)
-        self.direct_payload = {
-            "item": {"product": self.product.id, "quantity": 1}
-        }
+        self.direct_payload = {"item": {"product": self.product.id, "quantity": 1}}
 
     def test_finalize_order_requires_authentication(self):
         response = self.client.post(
