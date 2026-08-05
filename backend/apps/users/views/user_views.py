@@ -27,7 +27,7 @@ class UserManagementStaffView(APIView):
 
     def patch(self, request, pk=None):
         if not pk:
-            return Respose(
+            return Response(
                 {"detail": "O id do usuário deve ser fornecido na URL"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
