@@ -18,3 +18,4 @@ class AddressSerializer(serializers.ModelSerializer):
             "zip_code",
             "full_address",
         )
+        read_only_fields = ["id"]

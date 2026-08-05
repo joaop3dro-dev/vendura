@@ -7,6 +7,8 @@ from rest_framework.generics import (
 )
 from rest_framework.response import Response
 
+from apps.customers.repositories import CustomerRepository
+
 from .models import Cart, CartItem
 from .serializers import (
     CartItemSerializer,
@@ -24,7 +26,8 @@ class CreateCartItemView(CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        cart, _ = Cart.objects.get_or_create(customer=self.request.user)
+        customer = CustomerRepository.get_customer_by_user(self.request.user)
+        cart, _ = Cart.objects.get_or_create(customer=customer)
         item = serializer.validated_data["item"]
         quantity = serializer.validated_data["quantity"]
 
@@ -50,7 +53,8 @@ class UpdateDestroyCartItemView(RetrieveUpdateDestroyAPIView):
     queryset = CartItem.objects.all()
 
     def get_queryset(self):
-        return CartItem.objects.filter(cart__customer=self.request.user)
+        customer = CustomerRepository.get_customer_by_user(self.request.user)
+        return CartItem.objects.filter(cart__customer=customer)
 
 
 class CartView(ListAPIView):
@@ -59,6 +63,7 @@ class CartView(ListAPIView):
     serializer_class = CartSerializer
 
     def get_queryset(self):
-        return Cart.objects.filter(customer=self.request.user).prefetch_related(
-            Prefetch("itens", queryset=CartItem.objects.select_related("item"))
+        customer = CustomerRepository.get_customer_by_user(self.request.user)
+        return Cart.objects.filter(customer=customer).prefetch_related(
+            Prefetch("items", queryset=CartItem.objects.select_related("item"))
         )

@@ -1,7 +1,7 @@
-from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
-from .models import Address, Customer
+from .models import Address
+from .repositories import CustomerRepository
 from .serializers import AddressSerializer
 
 
@@ -10,10 +10,11 @@ class ListCreateAddressView(ListCreateAPIView):
     queryset = Address.objects.all()
 
     def get_queryset(self):
-        return Address.objects.filter(customer__user=self.request.user)
+        customer = CustomerRepository.get_customer_by_user(self.request.user)
+        return Address.objects.filter(customer=customer)
 
     def perform_create(self, serializer):
-        customer = get_object_or_404(Customer, user=self.request.user)
+        customer = CustomerRepository.get_customer_by_user(self.request.user)
         serializer.save(customer=customer)
 
 
@@ -22,4 +23,5 @@ class UpdateDestroyAddressView(RetrieveUpdateDestroyAPIView):
     queryset = Address.objects.all()
 
     def get_queryset(self):
-        return Address.objects.filter(customer__user=self.request.user)
+        customer = CustomerRepository.get_customer_by_user(self.request.user)
+        return Address.objects.filter(customer=customer)

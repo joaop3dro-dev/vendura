@@ -1,23 +1,23 @@
-from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
 
+from apps.customers.models import Customer
 from apps.products.models import Product
-
-User = get_user_model()
 
 
 class Cart(models.Model):
-    customer = models.OneToOneField(User, on_delete=models.CASCADE, related_name="cart")
+    customer = models.OneToOneField(
+        Customer, on_delete=models.CASCADE, related_name="cart"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
 
 class CartItem(models.Model):
     class SelectedChoices(models.TextChoices):
         SELECTED = "selected", "Selecionado"
-        NO_SELECTED = "no-selected", "Não Selecionado"
+        UNSELECTED = "unselected", "Não Selecionado"
 
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="itens")
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="items")
     item = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="carts")
     quantity = models.PositiveIntegerField(default=1)
     selected = models.CharField(

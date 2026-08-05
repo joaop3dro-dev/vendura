@@ -2,7 +2,7 @@ class OrderError(Exception):
     pass
 
 
-class OrderNotExists(OrderError):
+class OrderNotFoundError(OrderError):
     pass
 
 

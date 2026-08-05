@@ -19,7 +19,16 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ["id", "total", "status", "status_display", "created_at", "items"]
+        fields = [
+            "id",
+            "total",
+            "status",
+            "status_display",
+            "created_at",
+            "delivery_address",
+            "items",
+        ]
+        read_only_fields = ["delivery_address"]
 
 
 class OrderItemInputSerializer(serializers.Serializer):
@@ -28,9 +37,11 @@ class OrderItemInputSerializer(serializers.Serializer):
 
 
 class FinalizeOrderCartSerializer(serializers.Serializer):
+    address_id = serializers.IntegerField(min_value=1)
     coupon_code = serializers.CharField(required=False, allow_null=True)
 
 
 class FinalizeOrderOneProductSerializer(serializers.Serializer):
     item = OrderItemInputSerializer()
+    address_id = serializers.IntegerField(min_value=1)
     coupon_code = serializers.CharField(required=False, allow_null=True)

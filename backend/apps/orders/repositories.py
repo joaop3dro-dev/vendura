@@ -1,4 +1,4 @@
-from .exceptions import OrderNotExists
+from .exceptions import OrderNotFoundError
 from .models import Order, OrderItem
 
 
@@ -11,7 +11,9 @@ class OrderRepository:
                 customer=customer,
             )
         except Order.DoesNotExist:
-            raise OrderNotExists(f"Nenhum pedido foi encontrado com o id {order_id}")
+            raise OrderNotFoundError(
+                f"Nenhum pedido foi encontrado com o id {order_id}"
+            )
 
     @staticmethod
     def cancel_order(order: Order):
@@ -20,8 +22,15 @@ class OrderRepository:
         return order
 
     @staticmethod
-    def create_new_order(customer, total, status=Order.Status.PENDING):
-        return Order.objects.create(customer=customer, total=total, status=status)
+    def create_new_order(
+        customer, total, delivery_address, status=Order.Status.PENDING
+    ):
+        return Order.objects.create(
+            customer=customer,
+            total=total,
+            delivery_address=delivery_address,
+            status=status,
+        )
 
 
 class OrderItemRepository:

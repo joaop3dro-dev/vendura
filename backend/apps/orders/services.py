@@ -3,7 +3,8 @@ from decimal import Decimal
 from django.db import transaction
 from django.utils import timezone
 
-from apps.carts.models import CartItem
+from apps.carts.exceptions import EmptyCartError
+from apps.carts.repositories import CartItemRepository
 from apps.coupons.exceptions import (
     CouponExpiredError,
     CouponMinimumOrderValueError,
@@ -12,6 +13,8 @@ from apps.coupons.exceptions import (
     CouponUsageLimitReachedError,
 )
 from apps.coupons.repositories import CouponRepository
+from apps.customers.repositories import AddressRepository
+from apps.products.exceptions import InsufficientStockError, InvalidProductError
 from apps.products.repositories import ProductRepository
 
 from .models import Coupon, Order
@@ -28,7 +31,8 @@ def calc_total(items, products):
 
 
 @transaction.atomic
-def finalize_direct_order(customer, coupon_code, item):
+def finalize_direct_order(customer, coupon_code, item, address_id):
+    delivery_address = AddressRepository.get_address_by_id(customer, address_id)
     product = ProductRepository.get_products_for_update_direct(item["product"].id)
 
     total = product.price * item["quantity"]
@@ -58,15 +62,15 @@ def finalize_direct_order(customer, coupon_code, item):
             discount = min(discount, coupon.max_discount_amount)
         total -= discount
 
-        updated = CouponRepository.coupon_add_use(coupon.id)
+        updated = CouponRepository.increment_usage(coupon.id)
 
         if updated == 0:
             raise CouponUsageLimitReachedError("Limite de usos atingido")
 
     if product.stock < item["quantity"]:
-        raise ValueError(f"Estoque insuficiente para {product.name}")
+        raise InsufficientStockError(f"Estoque insuficiente para {product.name}")
 
-    order = OrderRepository.create_new_order(customer, total)
+    order = OrderRepository.create_new_order(customer, total, delivery_address)
 
     OrderItemRepository.create_order_item(
         order, product, item["quantity"], unit_price=product.price
@@ -78,21 +82,18 @@ def finalize_direct_order(customer, coupon_code, item):
 
 
 @transaction.atomic
-def finalize_order_cart(customer, coupon_code):
-    items = list(
-        CartItem.objects.filter(
-            cart__customer=customer, selected=CartItem.SelectedChoices.SELECTED
-        ).values_list("item_id", "quantity")
-    )
+def finalize_order_cart(customer, coupon_code, address_id):
+    delivery_address = AddressRepository.get_address_by_id(customer, address_id)
+    items = CartItemRepository.get_customer_cart_items_tuple(customer)
 
     if len(items) == 0:
-        raise ValueError("Não há produtos selecionados no carrinho")
+        raise EmptyCartError("Não há produtos selecionados no carrinho")
 
     product_ids = [item_id for item_id, _ in items]
     products = ProductRepository.get_products_for_update(product_ids)
 
     if len(products) != len(set(product_ids)):
-        raise ValueError("Produto inválido no carrinho")
+        raise InvalidProductError("Produto inválido no carrinho")
 
     total = calc_total(items, products)
     if coupon_code:
@@ -120,7 +121,7 @@ def finalize_order_cart(customer, coupon_code):
             discount = min(discount, coupon.max_discount_amount)
         total -= discount
 
-        updated = CouponRepository.coupon_add_use(coupon.id)
+        updated = CouponRepository.increment_usage(coupon.id)
 
         if updated == 0:
             raise CouponUsageLimitReachedError("Limite de usos atingido")
@@ -129,9 +130,9 @@ def finalize_order_cart(customer, coupon_code):
         product = products[item]
 
         if product.stock < qty:
-            raise ValueError(f"Estoque insuficiente para {product.name}")
+            raise InsufficientStockError(f"Estoque insuficiente para {product.name}")
 
-    order = OrderRepository.create_new_order(customer, total)
+    order = OrderRepository.create_new_order(customer, total, delivery_address)
 
     for item, qty in items:
         product = products[item]
@@ -142,15 +143,13 @@ def finalize_order_cart(customer, coupon_code):
 
         ProductRepository.decrement_stock(product.id, qty)
 
-    CartItem.objects.filter(
-        cart__customer=customer, selected=CartItem.SelectedChoices.SELECTED
-    ).delete()
+    CartItemRepository.delete_customer_cart_items(customer)
 
     return order.pk
 
 
 @transaction.atomic
-def order_pedding_process():
+def order_pending_process():
     order = (
         Order.objects.select_for_update(skip_locked=True)
         .filter(status=Order.Status.PENDING)

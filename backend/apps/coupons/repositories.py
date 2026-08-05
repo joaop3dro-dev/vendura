@@ -10,7 +10,7 @@ class CouponRepository:
         return Coupon.objects.get(code=code)
 
     @staticmethod
-    def coupon_add_use(coupon_id):
+    def increment_usage(coupon_id):
         return Coupon.objects.filter(
             id=coupon_id, used__lt=F("uses"), activated=True, expires__gt=timezone.now()
         ).update(used=F("used") + 1)

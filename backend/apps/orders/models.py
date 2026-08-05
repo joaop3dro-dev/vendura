@@ -1,13 +1,11 @@
-from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
 
 from apps.coupons.models import Coupon
+from apps.customers.models import Customer
 from apps.products.models import Product
 
 from .exceptions import OrderCannotBeCancelledError
-
-User = get_user_model()
 
 
 class Order(models.Model):
@@ -19,7 +17,7 @@ class Order(models.Model):
         CANCELLED = "cancelled", "Cancelado"
         PROCESSING = "processing", "Processando"
 
-    customer = models.ForeignKey(User, on_delete=models.PROTECT)
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     total = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True
@@ -28,6 +26,7 @@ class Order(models.Model):
     coupon = models.ForeignKey(
         Coupon, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders"
     )
+    delivery_address = models.JSONField(default=dict)
 
     class Meta:
         constraints = [

@@ -7,13 +7,13 @@ User = get_user_model()
 
 class Customer(models.Model):
     class Status(models.TextChoices):
-        ACTIVATE = "activate", "Ativo"
-        DEACTIVATE = "deactivate", "Desativado"
+        ACTIVE = "active", "Ativo"
+        INACTIVE = "inactive", "Inativo"
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="customer")
     phone = PhoneNumberField()
-    activate = models.CharField(
-        choices=Status.choices, default=Status.ACTIVATE, max_length=20
+    status = models.CharField(
+        choices=Status.choices, default=Status.ACTIVE, max_length=20
     )
 
     class Meta:
@@ -33,4 +33,7 @@ class Address(models.Model):
 
     @property
     def full_address(self):
-        return f"{self.street}, {self.number}, {self.neighborhood}, {self.city}-{self.state}, CEP: {self.zip_code}"
+        return (
+            f"{self.street}, {self.number}, {self.neighborhood}, "
+            f"{self.city}-{self.state}, CEP: {self.zip_code}"
+        )
