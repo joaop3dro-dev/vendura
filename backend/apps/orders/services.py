@@ -33,44 +33,16 @@ def calc_total(items, products):
 @transaction.atomic
 def finalize_direct_order(customer, coupon_code, item, address_id):
     delivery_address = AddressRepository.get_address_by_id(customer, address_id)
-    product = ProductRepository.get_products_for_update_direct(item["product"].id)
+    product = ProductRepository.get_product_for_update_direct(item["product"].id)
 
     total = product.price * item["quantity"]
 
-    if coupon_code:
-        try:
-            coupon = CouponRepository.get_coupon(coupon_code)
-        except Coupon.DoesNotExist:
-            raise CouponNotFoundError(f"Cupom '{coupon_code}' não encontrado")
-
-        discount_percent = coupon.discount_percent
-
-        if not coupon.activated:
-            raise CouponNotActivatedError(
-                f"Cupom '{coupon_code}' não está ativado para uso"
-            )
-
-        if coupon.expires < timezone.now():
-            raise CouponExpiredError("Cupom expirado")
-
-        if coupon.min_value_amount is not None and total < coupon.min_value_amount:
-            raise CouponMinimumOrderValueError("Valor mínimo de uso não atingido")
-
-        discount = total * (discount_percent / Decimal(100))
-
-        if coupon.max_discount_amount is not None:
-            discount = min(discount, coupon.max_discount_amount)
-        total -= discount
-
-        updated = CouponRepository.increment_usage(coupon.id)
-
-        if updated == 0:
-            raise CouponUsageLimitReachedError("Limite de usos atingido")
+    coupon, total = apply_coupon(coupon_code, total)
 
     if product.stock < item["quantity"]:
         raise InsufficientStockError(f"Estoque insuficiente para {product.name}")
 
-    order = OrderRepository.create_new_order(customer, total, delivery_address)
+    order = OrderRepository.create_new_order(customer, total, delivery_address, coupon)
 
     OrderItemRepository.create_order_item(
         order, product, item["quantity"], unit_price=product.price
@@ -96,35 +68,8 @@ def finalize_order_cart(customer, coupon_code, address_id):
         raise InvalidProductError("Produto inválido no carrinho")
 
     total = calc_total(items, products)
-    if coupon_code:
-        try:
-            coupon = CouponRepository.get_coupon(coupon_code)
-        except Coupon.DoesNotExist:
-            raise CouponNotFoundError(f"Cupom '{coupon_code}' não encontrado")
 
-        discount_percent = coupon.discount_percent
-
-        if not coupon.activated:
-            raise CouponNotActivatedError(
-                f"Cupom '{coupon_code}' não está ativado para uso"
-            )
-
-        if coupon.expires < timezone.now():
-            raise CouponExpiredError("Cupom expirado")
-
-        if coupon.min_value_amount is not None and total < coupon.min_value_amount:
-            raise CouponMinimumOrderValueError("Valor mínimo de uso não atingido")
-
-        discount = total * (discount_percent / Decimal(100))
-
-        if coupon.max_discount_amount is not None:
-            discount = min(discount, coupon.max_discount_amount)
-        total -= discount
-
-        updated = CouponRepository.increment_usage(coupon.id)
-
-        if updated == 0:
-            raise CouponUsageLimitReachedError("Limite de usos atingido")
+    coupon, total = apply_coupon(coupon_code, total)
 
     for item, qty in items:
         product = products[item]
@@ -132,7 +77,7 @@ def finalize_order_cart(customer, coupon_code, address_id):
         if product.stock < qty:
             raise InsufficientStockError(f"Estoque insuficiente para {product.name}")
 
-    order = OrderRepository.create_new_order(customer, total, delivery_address)
+    order = OrderRepository.create_new_order(customer, total, delivery_address, coupon)
 
     for item, qty in items:
         product = products[item]
@@ -180,3 +125,39 @@ def cancel_order(customer, order_id):
         )
 
     return order
+
+
+def apply_coupon(coupon_code, total):
+    if coupon_code:
+        try:
+            coupon = CouponRepository.get_coupon(coupon_code)
+        except Coupon.DoesNotExist:
+            raise CouponNotFoundError(f"Cupom '{coupon_code}' não encontrado")
+
+        discount_percent = coupon.discount_percent
+
+        if not coupon.activated:
+            raise CouponNotActivatedError(
+                f"Cupom '{coupon_code}' não está ativado para uso"
+            )
+
+        if coupon.expires < timezone.now():
+            raise CouponExpiredError("Cupom expirado")
+
+        if coupon.min_value_amount is not None and total < coupon.min_value_amount:
+            raise CouponMinimumOrderValueError("Valor mínimo de uso não atingido")
+
+        discount = total * (discount_percent / Decimal(100))
+
+        if coupon.max_discount_amount is not None:
+            discount = min(discount, coupon.max_discount_amount)
+        total -= discount
+
+        updated = CouponRepository.increment_usage(coupon.id)
+
+        if updated == 0:
+            raise CouponUsageLimitReachedError("Limite de usos atingido")
+
+        return coupon, total
+    else:
+        return None, total

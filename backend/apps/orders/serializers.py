@@ -32,7 +32,9 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class OrderItemInputSerializer(serializers.Serializer):
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.filter(public=True)
+    )
     quantity = serializers.IntegerField(min_value=1)
 
 

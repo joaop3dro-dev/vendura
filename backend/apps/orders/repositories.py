@@ -23,13 +23,14 @@ class OrderRepository:
 
     @staticmethod
     def create_new_order(
-        customer, total, delivery_address, status=Order.Status.PENDING
+        customer, total, delivery_address, coupon=None, status=Order.Status.PENDING
     ):
         return Order.objects.create(
             customer=customer,
             total=total,
             delivery_address=delivery_address,
             status=status,
+            coupon=coupon,
         )
 
 

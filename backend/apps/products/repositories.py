@@ -1,17 +1,23 @@
 from django.db.models import F
 
+from .exceptions import InvalidProductError
 from .models import Product
 
 
 class ProductRepository:
     @staticmethod
     def get_products_for_update(product_ids: list):
-        return (
+        products = (
             Product.objects.select_for_update()
-            .filter(id__in=product_ids)
+            .filter(id__in=product_ids, public=True)
             .order_by("id")
             .in_bulk()
         )
+
+        if set(product_ids) - set(products):
+            raise InvalidProductError("O produto enviado é inválido")
+
+        return products
 
     @staticmethod
     def decrement_stock(product_id: int, quantity: int):
@@ -25,8 +31,15 @@ class ProductRepository:
         return product
 
     @staticmethod
-    def get_products_for_update_direct(product_id):
-        return Product.objects.select_for_update().get(id=product_id)
+    def get_product_for_update_direct(product_id):
+        try:
+            return (
+                Product.objects.select_for_update()
+                .filter(public=True)
+                .get(id=product_id)
+            )
+        except Product.DoesNotExist:
+            raise InvalidProductError("o produto enviado é inválido")
 
     @staticmethod
     def increment_stock(product_id, quantity):

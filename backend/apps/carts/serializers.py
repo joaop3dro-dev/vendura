@@ -1,11 +1,16 @@
 from rest_framework import serializers
 
+from apps.products.models import Product
 from apps.products.serializers import ProductSerializer
 
 from .models import Cart, CartItem
 
 
 class CreateCartItemSerializer(serializers.ModelSerializer):
+    item = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.filter(public=True)
+    )
+
     class Meta:
         model = CartItem
         fields = ["id", "item", "quantity"]

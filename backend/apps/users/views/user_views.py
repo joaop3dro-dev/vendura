@@ -39,11 +39,9 @@ class UserManagementStaffView(APIView):
             )
 
         user.is_active = False
-        user.save(
-            update_fields=["is_active"]
-        )  # Otimaliza o banco salvando apenas esta coluna
+        user.save(update_fields=["is_active"])
 
         return Response(
-            {"detail": f"Usuário '{user.username}' desativado com sucesso."},
+            {"detail": f"Usuário '{user.email}' desativado com sucesso."},
             status=status.HTTP_200_OK,
         )
