@@ -49,6 +49,7 @@ local_settings.py
 # ==========================================
 # Node.js
 # ==========================================
+/vendura-frontend/
 node_modules/
 
 npm-debug.log*
