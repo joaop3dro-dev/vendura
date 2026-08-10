@@ -172,6 +172,34 @@ JWT_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = False
 
 # =============================================================================
+# DEBUGGER
+# =============================================================================
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "apps": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
+}
+
+# =============================================================================
 # DJANGO REDIS
 # =============================================================================
 
