@@ -38,12 +38,12 @@ class OrderItemInputSerializer(serializers.Serializer):
     quantity = serializers.IntegerField(min_value=1)
 
 
-class FinalizeOrderCartSerializer(serializers.Serializer):
+class CreateOrderCartSerializer(serializers.Serializer):
     address_id = serializers.IntegerField(min_value=1)
     coupon_code = serializers.CharField(required=False, allow_null=True)
 
 
-class FinalizeOrderOneProductSerializer(serializers.Serializer):
+class CreateOrderDirectSerializer(serializers.Serializer):
     item = OrderItemInputSerializer()
     address_id = serializers.IntegerField(min_value=1)
     coupon_code = serializers.CharField(required=False, allow_null=True)

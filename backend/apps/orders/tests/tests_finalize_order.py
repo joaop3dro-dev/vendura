@@ -11,18 +11,18 @@ from apps.products.exceptions import InsufficientStockError, InvalidProductError
 from apps.products.factory import ProductFactory
 
 from ..models import Order
-from ..services import finalize_direct_order, finalize_order_cart
+from ..services import create_direct_order, create_order_cart
 
 
-class FinalizeOrderTest(TestCase):
+class CreateOrderTest(TestCase):
     def setUp(self):
         self.customer = CustomerFactory()
         self.user = self.customer.user
         self.address = AddressFactory(customer=self.customer)
         self.product = ProductFactory(price=Decimal("100.00"), stock=10)
 
-    def test_finalize_direct_order(self):
-        order_id = finalize_direct_order(
+    def test_create_direct_order(self):
+        order_id = create_direct_order(
             customer=self.customer,
             coupon_code=None,
             item={"product": self.product, "quantity": 2},
@@ -36,12 +36,12 @@ class FinalizeOrderTest(TestCase):
         self.assertEqual(order.items.get().quantity, 2)
         self.assertEqual(self.product.stock, 8)
 
-    def test_finalize_direct_order_with_coupon(self):
+    def test_create_direct_order_with_coupon(self):
         coupon = CouponFactory(
             discount_percent=Decimal("10.00"),
             min_value_amount=Decimal("0.00"),
         )
-        order_id = finalize_direct_order(
+        order_id = create_direct_order(
             customer=self.customer,
             coupon_code=coupon.code,
             item={"product": self.product, "quantity": 1},
@@ -54,7 +54,7 @@ class FinalizeOrderTest(TestCase):
         self.assertEqual(order.total, Decimal("90.00"))
         self.assertEqual(coupon.used, 1)
 
-    def test_finalize_cart_uses_only_selected_items(self):
+    def test_create_cart_uses_only_selected_items(self):
         cart = Cart.objects.create(customer=self.customer)
         unselected_product = ProductFactory(stock=10)
         CartItem.objects.create(cart=cart, item=self.product, quantity=2)
@@ -65,7 +65,7 @@ class FinalizeOrderTest(TestCase):
             selected=CartItem.SelectedChoices.UNSELECTED,
         )
 
-        order_id = finalize_order_cart(
+        order_id = create_order_cart(
             customer=self.customer,
             coupon_code=None,
             address_id=self.address.id,
@@ -84,9 +84,9 @@ class FinalizeOrderTest(TestCase):
             CartItem.objects.filter(cart=cart, item=unselected_product).exists()
         )
 
-    def test_finalize_direct_order_rejects_insufficient_stock(self):
+    def test_create_direct_order_rejects_insufficient_stock(self):
         with self.assertRaises(InsufficientStockError):
-            finalize_direct_order(
+            create_direct_order(
                 customer=self.customer,
                 coupon_code=None,
                 item={"product": self.product, "quantity": 11},
@@ -95,9 +95,9 @@ class FinalizeOrderTest(TestCase):
 
         self.assertFalse(Order.objects.exists())
 
-    def test_finalize_cart_rejects_empty_cart(self):
+    def test_create_cart_rejects_empty_cart(self):
         with self.assertRaises(EmptyCartError):
-            finalize_order_cart(
+            create_order_cart(
                 customer=self.customer,
                 coupon_code=None,
                 address_id=self.address.id,
@@ -105,7 +105,7 @@ class FinalizeOrderTest(TestCase):
 
         self.assertFalse(Order.objects.exists())
 
-    def test_finalize_cart_rejects_invalid_product(self):
+    def test_create_cart_rejects_invalid_product(self):
         cart = Cart.objects.create(customer=self.customer)
         CartItem.objects.create(cart=cart, item=self.product, quantity=1)
 
@@ -114,7 +114,7 @@ class FinalizeOrderTest(TestCase):
             return_value={},
         ):
             with self.assertRaises(InvalidProductError):
-                finalize_order_cart(
+                create_order_cart(
                     customer=self.customer,
                     coupon_code=None,
                     address_id=self.address.id,

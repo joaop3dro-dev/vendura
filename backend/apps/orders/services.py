@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 
 from django.db import transaction
@@ -20,6 +21,8 @@ from apps.products.repositories import ProductRepository
 from .models import Coupon, Order
 from .repositories import OrderItemRepository, OrderRepository
 
+logger = logging.getLogger(__name__)
+
 
 def calc_total(items, products):
     total = Decimal("0")
@@ -31,7 +34,8 @@ def calc_total(items, products):
 
 
 @transaction.atomic
-def finalize_direct_order(customer, coupon_code, item, address_id):
+def create_direct_order(customer, coupon_code, item, address_id):
+    logger.info("service chamado")
     delivery_address = AddressRepository.get_address_by_id(customer, address_id)
     product = ProductRepository.get_product_for_update_direct(item["product"].id)
 
@@ -42,6 +46,8 @@ def finalize_direct_order(customer, coupon_code, item, address_id):
     if product.stock < item["quantity"]:
         raise InsufficientStockError(f"Estoque insuficiente para {product.name}")
 
+    logger.info("produto e quantidade válidos")
+
     order = OrderRepository.create_new_order(customer, total, delivery_address, coupon)
 
     OrderItemRepository.create_order_item(
@@ -50,11 +56,14 @@ def finalize_direct_order(customer, coupon_code, item, address_id):
 
     ProductRepository.decrement_stock(product.id, item["quantity"])
 
+    logger.info("pedido criado com sucesso. order_id: %s", order.pk)
+
     return order.pk
 
 
 @transaction.atomic
-def finalize_order_cart(customer, coupon_code, address_id):
+def create_order_cart(customer, coupon_code, address_id):
+    logger.info("service chamado")
     delivery_address = AddressRepository.get_address_by_id(customer, address_id)
     items = CartItemRepository.get_customer_cart_items_tuple(customer)
 
@@ -67,15 +76,17 @@ def finalize_order_cart(customer, coupon_code, address_id):
     if len(products) != len(set(product_ids)):
         raise InvalidProductError("Produto inválido no carrinho")
 
-    total = calc_total(items, products)
-
-    coupon, total = apply_coupon(coupon_code, total)
-
     for item, qty in items:
         product = products[item]
 
         if product.stock < qty:
             raise InsufficientStockError(f"Estoque insuficiente para {product.name}")
+
+    logger.info("produtos e quantidade válidos")
+
+    total = calc_total(items, products)
+
+    coupon, total = apply_coupon(coupon_code, total)
 
     order = OrderRepository.create_new_order(customer, total, delivery_address, coupon)
 
@@ -89,6 +100,8 @@ def finalize_order_cart(customer, coupon_code, address_id):
         ProductRepository.decrement_stock(product.id, qty)
 
     CartItemRepository.delete_customer_cart_items(customer)
+
+    logger.info("pedido criado com sucesso. order_id: %s", order.pk)
 
     return order.pk
 
@@ -132,19 +145,25 @@ def apply_coupon(coupon_code, total):
         try:
             coupon = CouponRepository.get_coupon(coupon_code)
         except Coupon.DoesNotExist:
+            logger.warning("cupom não encontrado. coupom_code: %s", coupon_code)
             raise CouponNotFoundError(f"Cupom '{coupon_code}' não encontrado")
 
         discount_percent = coupon.discount_percent
 
         if not coupon.activated:
+            logger.warning("cupom não ativado. coupon_code: %s", coupon_code)
             raise CouponNotActivatedError(
                 f"Cupom '{coupon_code}' não está ativado para uso"
             )
 
         if coupon.expires < timezone.now():
+            logger.warning("cupom expirado. coupon_code: %s", coupon_code)
             raise CouponExpiredError("Cupom expirado")
 
         if coupon.min_value_amount is not None and total < coupon.min_value_amount:
+            logger.warning(
+                "valor mínimo de compra não atingido. coupon_code: %s", coupon_code
+            )
             raise CouponMinimumOrderValueError("Valor mínimo de uso não atingido")
 
         discount = total * (discount_percent / Decimal(100))
@@ -156,6 +175,9 @@ def apply_coupon(coupon_code, total):
         updated = CouponRepository.increment_usage(coupon.id)
 
         if updated == 0:
+            logger.warning(
+                "limite de usos do cupom atingido. coupon_code: %s", coupon_code
+            )
             raise CouponUsageLimitReachedError("Limite de usos atingido")
 
         return coupon, total

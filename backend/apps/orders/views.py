@@ -10,23 +10,21 @@ from config.pagination import OrderPageNumberPagination
 
 from .models import Order, OrderItem
 from .serializers import (
-    FinalizeOrderCartSerializer,
-    FinalizeOrderOneProductSerializer,
+    CreateOrderCartSerializer,
+    CreateOrderDirectSerializer,
     OrderSerializer,
 )
-from .services import cancel_order, finalize_direct_order, finalize_order_cart
+from .services import cancel_order, create_direct_order, create_order_cart
 
 
-class FinalizeOrderCartView(APIView):
-    @extend_schema(
-        request=FinalizeOrderCartSerializer, responses={201: OrderSerializer}
-    )
+class CreateOrderCartView(APIView):
+    @extend_schema(request=CreateOrderCartSerializer, responses={201: OrderSerializer})
     def post(self, request):
-        serializer = FinalizeOrderCartSerializer(data=request.data)
+        serializer = CreateOrderCartSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         customer = CustomerRepository.get_customer_by_user(request.user)
 
-        order_id = finalize_order_cart(
+        order_id = create_order_cart(
             customer=customer,
             coupon_code=serializer.validated_data.get("coupon_code"),
             address_id=serializer.validated_data["address_id"],
@@ -39,16 +37,16 @@ class FinalizeOrderCartView(APIView):
         return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
 
 
-class FinalizeDirectProductView(APIView):
+class CreateOrderDirectView(APIView):
     @extend_schema(
-        request=FinalizeOrderOneProductSerializer, responses={201: OrderSerializer}
+        request=CreateOrderDirectSerializer, responses={201: OrderSerializer}
     )
     def post(self, request):
-        serializer = FinalizeOrderOneProductSerializer(data=request.data)
+        serializer = CreateOrderDirectSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         customer = CustomerRepository.get_customer_by_user(request.user)
 
-        order_id = finalize_direct_order(
+        order_id = create_direct_order(
             customer=customer,
             coupon_code=serializer.validated_data.get("coupon_code"),
             item=serializer.validated_data["item"],

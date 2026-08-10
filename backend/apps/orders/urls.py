@@ -2,14 +2,14 @@ from django.urls import path
 
 from .views import (
     CancelOrderView,
-    FinalizeDirectProductView,
-    FinalizeOrderCartView,
+    CreateOrderCartView,
+    CreateOrderDirectView,
     OrderView,
 )
 
 urlpatterns = [
-    path("finalize-cart/", FinalizeOrderCartView.as_view()),
-    path("finalize-direct/", FinalizeDirectProductView.as_view()),
+    path("finalize-cart/", CreateOrderCartView.as_view()),
+    path("finalize-direct/", CreateOrderDirectView.as_view()),
     path("", OrderView.as_view()),
     path("<int:pk>/cancel/", CancelOrderView.as_view()),
 ]
