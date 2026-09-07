@@ -1,3 +1,5 @@
+from django.utils import timezone
+
 from .exceptions import OrderNotFoundError
 from .models import Order, OrderItem
 
@@ -16,21 +18,41 @@ class OrderRepository:
             )
 
     @staticmethod
-    def cancel_order(order: Order):
-        order.cancel()
-
-        return order
+    def get_order_for_update_by_id(order_id):
+        try:
+            return Order.objects.select_for_update().get(pk=order_id)
+        except Order.DoesNotExist:
+            raise OrderNotFoundError(
+                f"Nenhum pedido foi encontrado com o id {order_id}"
+            )
 
     @staticmethod
     def create_new_order(
-        customer, total, delivery_address, coupon=None, status=Order.Status.PENDING
+        customer,
+        total,
+        delivery_address,
+        expires_at,
+        coupon=None,
+        status=Order.Status.PENDING,
     ):
         return Order.objects.create(
             customer=customer,
             total=total,
             delivery_address=delivery_address,
             status=status,
+            expires_at=expires_at,
             coupon=coupon,
+        )
+
+    @staticmethod
+    def get_expired_peding_orders_ids(limit):
+        return (
+            Order.objects.filter(
+                status=Order.Status.PENDING,
+                expires_at__lt=timezone.now(),
+            )
+            .order_by("expires_at")
+            .values_list("id", flat=True)[:limit]
         )
 
 

@@ -14,7 +14,7 @@ from .serializers import (
     CreateOrderDirectSerializer,
     OrderSerializer,
 )
-from .services import cancel_order, create_direct_order, create_order_cart
+from .services import OrderService
 
 
 class CreateOrderCartView(APIView):
@@ -24,7 +24,7 @@ class CreateOrderCartView(APIView):
         serializer.is_valid(raise_exception=True)
         customer = CustomerRepository.get_customer_by_user(request.user)
 
-        order_id = create_order_cart(
+        order_id = OrderService.create_order_cart(
             customer=customer,
             coupon_code=serializer.validated_data.get("coupon_code"),
             address_id=serializer.validated_data["address_id"],
@@ -46,7 +46,7 @@ class CreateOrderDirectView(APIView):
         serializer.is_valid(raise_exception=True)
         customer = CustomerRepository.get_customer_by_user(request.user)
 
-        order_id = create_direct_order(
+        order_id = OrderService.create_direct_order(
             customer=customer,
             coupon_code=serializer.validated_data.get("coupon_code"),
             item=serializer.validated_data["item"],
@@ -79,6 +79,6 @@ class OrderView(ListAPIView):
 class CancelOrderView(APIView):
     def post(self, request, pk):
         customer = CustomerRepository.get_customer_by_user(request.user)
-        order = cancel_order(customer=customer, order_id=pk)
+        order = OrderService.cancel_order(customer=customer, order_id=pk)
 
         return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)

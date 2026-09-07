@@ -14,3 +14,9 @@ class CouponRepository:
         return Coupon.objects.filter(
             id=coupon_id, used__lt=F("uses"), activated=True, expires__gt=timezone.now()
         ).update(used=F("used") + 1)
+
+    @staticmethod
+    def decrement_usage(coupon_id):
+        return Coupon.objects.filter(id=coupon_id, used__gt=0).update(
+            used=F("used") - 1
+        )

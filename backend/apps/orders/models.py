@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 
 from apps.coupons.models import Coupon
 from apps.customers.models import Customer
@@ -16,6 +17,7 @@ class Order(models.Model):
         DELIVERED = "delivered", "Entregue"
         CANCELLED = "cancelled", "Cancelado"
         PROCESSING = "processing", "Processando"
+        EXPIRED = "expired", "Expirado"
 
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     total = models.DecimalField(max_digits=10, decimal_places=2, null=True)
@@ -27,6 +29,10 @@ class Order(models.Model):
         Coupon, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders"
     )
     delivery_address = models.JSONField(default=dict)
+    expires_at = models.DateTimeField()
+    expired_at = models.DateTimeField(null=True, blank=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         constraints = [
@@ -43,22 +49,33 @@ class Order(models.Model):
         return f"Order #{self.pk} - {self.status}"
 
     def cancel(self):
-        if self.status not in [
-            self.Status.PENDING,
-            self.Status.PAID,
-        ]:
+        if self.status != self.Status.PENDING:
             raise OrderCannotBeCancelledError(
                 f"Pedido com status '{self.status}' não pode ser cancelado"
             )
         self.status = self.Status.CANCELLED
-        self.save(update_fields=["status"])
+        self.cancelled_at = timezone.now()
+        self.save(update_fields=["status", "cancelled_at"])
+
+    def expire(self):
+        now = timezone.now()
+        if self.status != self.Status.PENDING:
+            return False
+
+        if self.expires_at > now:
+            return False
+
+        self.status = self.Status.EXPIRED
+        self.expired_at = now
+        self.save(update_fields=["status", "expired_at"])
+        return True
 
     def approve(self):
         if self.status != self.Status.PENDING:
             raise ValueError(f"Pedido com status '{self.status}' não pode ser aprovado")
-
+        self.paid_at = timezone.now()
         self.status = self.Status.PAID
-        self.save(update_fields=["status"])
+        self.save(update_fields=["status", "paid_at"])
 
 
 class OrderItem(models.Model):

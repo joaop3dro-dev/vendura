@@ -25,6 +25,10 @@ class OrderSerializer(serializers.ModelSerializer):
             "status",
             "status_display",
             "created_at",
+            "expires_at",
+            "paid_at",
+            "cancelled_at",
+            "expired_at",
             "delivery_address",
             "items",
         ]

@@ -1,4 +1,5 @@
 from rest_framework.permissions import BasePermission
+
 from .models import Order
 
 
@@ -15,4 +16,4 @@ class CanCancelOrder(BasePermission):
         return request.user.has_perm("orders.cancel_order")
 
     def has_object_permission(self, request, view, obj):
-        return obj.status in [Order.Status.PENDING, Order.Status.PAID]
+        return obj.status == Order.Status.PENDING
