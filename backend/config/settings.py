@@ -14,6 +14,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+import dj_database_url
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -33,7 +34,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost").split(",")
 
 
 # =============================================================================
@@ -103,30 +104,10 @@ WSGI_APPLICATION = "config.wsgi.application"
 # =============================================================================
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.config(default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
 
 # =============================================================================
 # REST FRAMEWORK, AUTHENTICATION & JWT
@@ -171,6 +152,28 @@ JWT_COOKIE_SECURE = not DEBUG
 JWT_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = False
 
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
+
+# =============================================================================
+# MEDIA
+# =============================================================================
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 # =============================================================================
 # DEBUGGER
 # =============================================================================
@@ -193,23 +196,17 @@ LOGGING = {
     "loggers": {
         "apps": {
             "handlers": ["console"],
-            "level": "DEBUG",
+            "level": "DEBUG" if DEBUG else "WARNING",
             "propagate": False,
         },
     },
 }
 
 # =============================================================================
-# DJANGO REDIS
+# PAYMENT
 # =============================================================================
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
-    }
-}
+ORDER_PAYMENT_EXPIRATION_MINUTES = 30
 
 # =============================================================================
 # INTERNATIONALIZAÇÃO

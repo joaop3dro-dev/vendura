@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
@@ -19,6 +21,8 @@ from apps.orders.exceptions import (
     OrderNotFoundError,
 )
 from apps.products.exceptions import InsufficientStockError, InvalidProductError
+
+logger = logging.getLogger(__name__)
 
 EXCEPTION_MAP = {
     CouponNotFoundError: status.HTTP_404_NOT_FOUND,
@@ -47,5 +51,7 @@ def custom_exception_handler(exc, context):
                 {"error": str(exc), "code": exception_class.__name__},
                 status=status_code,
             )
+
+    logger.exception("erro inesperado. path: %s", context["request"].path)
 
     return None
