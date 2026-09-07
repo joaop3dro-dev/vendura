@@ -20,6 +20,7 @@ class Product(models.Model):
         Category, on_delete=models.PROTECT, related_name="products"
     )
     public = models.BooleanField(default=True)
+    image = models.ImageField(upload_to="products/", null=True, blank=True)
 
     class Meta:
         constraints = [
