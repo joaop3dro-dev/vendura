@@ -45,7 +45,7 @@ class OrderRepository:
         )
 
     @staticmethod
-    def get_expired_peding_orders_ids(limit):
+    def get_expired_pending_orders_ids(limit):
         return (
             Order.objects.filter(
                 status=Order.Status.PENDING,
