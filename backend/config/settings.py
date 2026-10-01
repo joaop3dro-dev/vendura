@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "apps.carts",
     "apps.core",
     "apps.users",
+    "apps.payment",
     "drf_spectacular",
     "phonenumber_field",
 ]
@@ -106,7 +107,6 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": dj_database_url.config(default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
 }
-
 
 
 # =============================================================================
@@ -206,7 +206,16 @@ LOGGING = {
 # PAYMENT
 # =============================================================================
 
-ORDER_PAYMENT_EXPIRATION_MINUTES = 30
+MERCADO_PAGO_ACCESS_TOKEN = os.getenv("MERCADO_PAGO_ACCESS_TOKEN")
+MERCADO_PAGO_API_BASE_URL = os.getenv(
+    "MERCADO_PAGO_API_BASE_URL", "https://api.mercadopago.com"
+)
+MERCADO_PAGO_TIMEOUT_SECONDS = int(os.getenv("MERCADO_PAGO_TIMEOUT_SECONDS", 10))
+MERCADO_PAGO_PIX_EXPIRATION_MINUTES = int(
+    os.getenv("MERCADO_PAGO_PIX_EXPIRATION_MINUTES", 30)
+)
+
+ORDER_PAYMENT_EXPIRATION_MINUTES = 35
 
 # =============================================================================
 # INTERNATIONALIZAÇÃO
