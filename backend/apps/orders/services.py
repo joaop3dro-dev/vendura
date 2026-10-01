@@ -136,9 +136,14 @@ class OrderService:
     @transaction.atomic
     def cancel_order(customer, order_id):
         order = OrderRepository.get_order_for_update(customer, order_id)
+        return OrderService.cancel_locked_order(order)
 
+    @staticmethod
+    def cancel_locked_order(order):
         order.cancel()
+
         OrderService._release_order_reservations(order)
+
         return order
 
     @staticmethod
