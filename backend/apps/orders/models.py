@@ -15,7 +15,7 @@ class Order(models.Model):
         PAID = "paid", "Pago"
         SHIPPED = "shipped", "Enviado"
         DELIVERED = "delivered", "Entregue"
-        CANCELLED = "cancelled", "Cancelado"
+        CANCELED = "canceled", "Cancelado"
         PROCESSING = "processing", "Processando"
         EXPIRED = "expired", "Expirado"
 
@@ -53,7 +53,7 @@ class Order(models.Model):
             raise OrderCannotBeCancelledError(
                 f"Pedido com status '{self.status}' não pode ser cancelado"
             )
-        self.status = self.Status.CANCELLED
+        self.status = self.Status.CANCELED
         self.cancelled_at = timezone.now()
         self.save(update_fields=["status", "cancelled_at"])
 
