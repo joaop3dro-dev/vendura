@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from apps.orders.repositories import OrderRepository
-from apps.orders.services import OrderService
+from apps.payment.services import PaymentService
 
 
 class Command(BaseCommand):
@@ -11,12 +11,14 @@ class Command(BaseCommand):
         parser.add_argument("--limit", type=int, default=100)
 
     def handle(self, *args, **kwargs):
-        order_ids = OrderRepository.get_expired_pending_orders_ids(limit=kwargs["limit"])
+        order_ids = OrderRepository.get_expired_pending_orders_ids(
+            limit=kwargs["limit"]
+        )
 
         expired_orders_count = 0
 
         for order_id in order_ids:
-            order = OrderService.expire_order(order_id)
+            order = PaymentService.expire_order(order_id)
 
             if order is not None:
                 expired_orders_count += 1

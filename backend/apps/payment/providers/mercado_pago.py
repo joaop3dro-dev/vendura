@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from decimal import Decimal
+from uuid import UUID
 
 import requests
 from django.conf import settings
@@ -25,6 +27,18 @@ class MercadoPagoPixData:
 class MercadoPagoCancellationData:
     status: str
     status_detail: str
+
+
+@dataclass(frozen=True)
+class MercadoPagoGetOrderData:
+    order_id: str
+    payment_id: str
+    total_amount: Decimal
+    external_reference: UUID
+    payment_method_id: str
+    status: str
+    status_detail: str
+    paid_amount: Decimal
 
 
 class MercadoPagoClient:
@@ -149,6 +163,52 @@ class MercadoPagoClient:
             return MercadoPagoCancellationData(
                 status=provider_payment["status"],
                 status_detail=provider_payment["status_detail"],
+            )
+        except (ValueError, KeyError, IndexError, TypeError) as exc:
+            raise MercadoPagoInvalidResponseError(
+                "Resposta inválida da API do Mercado Pago"
+            ) from exc
+
+    def get_provider_order(self, provider_order_id):
+        try:
+            response = requests.get(
+                f"{self.base_url}/v1/orders/{provider_order_id}",
+                headers={
+                    "Authorization": f"Bearer {self.access_token}",
+                    "Content-Type": "application/json",
+                },
+                timeout=self.timeout_seconds,
+            )
+        except requests.RequestException as exc:
+            raise MercadoPagoUnavailableError(
+                "Erro ao coletar os dados da API do Mercado Pago"
+            ) from exc
+
+        if response.status_code == 429 or response.status_code >= 500:
+            raise MercadoPagoUnavailableError(
+                f"Mercado Pago respondeu HTTP {response.status_code}"
+            )
+
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as exc:
+            raise MercadoPagoRequestError(
+                f"Mercado Pago respondeu HTTP {response.status_code}"
+            ) from exc
+
+        try:
+            data = response.json()
+            provider_payment = data["transactions"]["payments"][0]
+
+            return MercadoPagoGetOrderData(
+                order_id=data["id"],
+                payment_id=provider_payment["id"],
+                total_amount=Decimal(data["total_amount"]),
+                external_reference=UUID(data["external_reference"]),
+                payment_method_id=provider_payment["payment_method"]["id"],
+                status=provider_payment["status"],
+                status_detail=provider_payment["status_detail"],
+                paid_amount=Decimal(provider_payment["paid_amount"]),
             )
         except (ValueError, KeyError, IndexError, TypeError) as exc:
             raise MercadoPagoInvalidResponseError(

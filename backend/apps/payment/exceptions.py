@@ -28,3 +28,7 @@ class MercadoPagoInvalidResponseError(MercadoPagoError):
 
 class PaymentCancellationPendingError(PaymentError):
     pass
+
+
+class PaymentNotFoundError(PaymentError):
+    pass
