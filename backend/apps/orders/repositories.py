@@ -27,6 +27,15 @@ class OrderRepository:
             )
 
     @staticmethod
+    def get_order(customer, order_id):
+        try:
+            return Order.objects.get(pk=order_id, customer=customer)
+        except Order.DoesNotExist:
+            raise OrderNotFoundError(
+                f"Nenhum pedido foi encontrado com o id {order_id}"
+            )
+
+    @staticmethod
     def create_new_order(
         customer,
         total,
@@ -45,7 +54,7 @@ class OrderRepository:
         )
 
     @staticmethod
-    def get_expired_peding_orders_ids(limit):
+    def get_expired_pending_orders_ids(limit):
         return (
             Order.objects.filter(
                 status=Order.Status.PENDING,
@@ -54,6 +63,13 @@ class OrderRepository:
             .order_by("expires_at")
             .values_list("id", flat=True)[:limit]
         )
+
+    @staticmethod
+    def get_order_for_update_by_kwargs(**kwargs):
+        try:
+            return Order.objects.select_for_update(of=["self"]).get(**kwargs)
+        except Order.DoesNotExist:
+            raise OrderNotFoundError("Nenhum pedido encontrado para estes dados")
 
 
 class OrderItemRepository:

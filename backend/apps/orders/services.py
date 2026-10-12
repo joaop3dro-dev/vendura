@@ -136,9 +136,14 @@ class OrderService:
     @transaction.atomic
     def cancel_order(customer, order_id):
         order = OrderRepository.get_order_for_update(customer, order_id)
+        return OrderService.cancel_locked_order(order)
 
+    @staticmethod
+    def cancel_locked_order(order):
         order.cancel()
+
         OrderService._release_order_reservations(order)
+
         return order
 
     @staticmethod
@@ -206,15 +211,9 @@ class OrderService:
             CouponRepository.decrement_usage(order.coupon_id)
 
     @staticmethod
-    @transaction.atomic
-    def expire_order(order_id):
-        order = OrderRepository.get_order_for_update_by_id(order_id)
-
-        expired = order.expire()
-
-        if not expired:
+    def expire_locked_order(order):
+        if not order.expire():
             return None
 
         OrderService._release_order_reservations(order)
-
         return order

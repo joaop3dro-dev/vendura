@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.customers.repositories import CustomerRepository
+from apps.payment.services import PaymentService
 from config.pagination import OrderPageNumberPagination
 
 from .models import Order, OrderItem
@@ -79,6 +80,6 @@ class OrderView(ListAPIView):
 class CancelOrderView(APIView):
     def post(self, request, pk):
         customer = CustomerRepository.get_customer_by_user(request.user)
-        order = OrderService.cancel_order(customer=customer, order_id=pk)
+        order = PaymentService.cancel_order(customer=customer, order_id=pk)
 
         return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)

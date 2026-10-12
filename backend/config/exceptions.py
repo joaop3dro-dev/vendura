@@ -20,6 +20,16 @@ from apps.orders.exceptions import (
     OrderCannotBeCancelledError,
     OrderNotFoundError,
 )
+from apps.payment.exceptions import (
+    MercadoPagoConfigurationError,
+    MercadoPagoInvalidResponseError,
+    MercadoPagoRequestError,
+    MercadoPagoUnavailableError,
+    PaymentCancellationPendingError,
+    PaymentError,
+    PaymentNotFoundError,
+    PaymentOrderNotAvailableError,
+)
 from apps.products.exceptions import InsufficientStockError, InvalidProductError
 
 logger = logging.getLogger(__name__)
@@ -37,6 +47,14 @@ EXCEPTION_MAP = {
     InvalidProductError: status.HTTP_400_BAD_REQUEST,
     InsufficientStockError: status.HTTP_409_CONFLICT,
     CustomerNotFoundError: status.HTTP_404_NOT_FOUND,
+    PaymentNotFoundError: status.HTTP_404_NOT_FOUND,
+    MercadoPagoRequestError: status.HTTP_502_BAD_GATEWAY,
+    MercadoPagoInvalidResponseError: status.HTTP_502_BAD_GATEWAY,
+    PaymentCancellationPendingError: status.HTTP_409_CONFLICT,
+    MercadoPagoUnavailableError: status.HTTP_503_SERVICE_UNAVAILABLE,
+    PaymentOrderNotAvailableError: status.HTTP_409_CONFLICT,
+    MercadoPagoConfigurationError: status.HTTP_500_INTERNAL_SERVER_ERROR,
+    PaymentError: status.HTTP_500_INTERNAL_SERVER_ERROR,
 }
 
 
