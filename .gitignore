@@ -47,37 +47,6 @@ local_settings.py
 !.env.example
 
 # ==========================================
-# Node.js
-# ==========================================
-/vendura-frontend/
-node_modules/
-
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# ==========================================
-# Next.js
-# ==========================================
-.next/
-out/
-
-coverage/
-.vercel/
-
-next-env.d.ts
-*.tsbuildinfo
-
-# ==========================================
 # IDEs
 # ==========================================
 .vscode/
@@ -100,5 +69,3 @@ Thumbs.db
 *.tmp
 *.temp
 
-# Outros
-UI_FOUNDATION.md
